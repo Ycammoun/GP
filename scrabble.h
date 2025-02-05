@@ -1,6 +1,7 @@
 #ifndef SCRABBLE_H
 #define SCRABBLE_H
-
+//gcc -o scrabble_program scrabble.c
+//./scrabble_program 
 
 typedef enum {N, LD, LT, MD, MT} type_case;
 
@@ -15,9 +16,11 @@ typedef struct {
     caractere c;      
 } Case;
 
-typedef struct {
-    Case **tab;  
-} Plateau;
+
+Case **init_plateau(int TAILLE_PLATEAU);
+void affiche_tab(Case **tab);
+void insert_caractere(caractere car,Case **tab,int x,int y);
+void ajout_caractere(Case **tab);
 
 #endif 
 

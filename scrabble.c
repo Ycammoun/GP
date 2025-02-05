@@ -12,7 +12,7 @@
         {'U', 6, 1}, {'V', 2, 4}, {'W', 1, 10}, {'X', 1, 10}, {'Y', 1, 10}, 
         {'Z', 1, 10}
     };
-caractere vide = {'.', 9, 1};  
+caractere vide = {' ', 9, 1};  
 const int TAILLE_PLATEAU = 15;
 
 Case **init_plateau(int TAILLE_PLATEAU) {
@@ -40,16 +40,39 @@ Case **init_plateau(int TAILLE_PLATEAU) {
     return resultat;
 }
 
-void affiche_tab(Case **tab) {
+/*void affiche_tab(Case **tab) {
     for (int i = 0; i < TAILLE_PLATEAU; i++) {
         for (int j = 0; j < TAILLE_PLATEAU; j++) {
             printf("%c ", tab[i][j].c.lettre);  
         }
         printf("\n");
     }
+    }*/
+
+void affiche_tab(Case **tab) {
+    for (int i = 0; i < TAILLE_PLATEAU; i++) {
+        // Ligne supérieure des cases
+        for (int j = 0; j < TAILLE_PLATEAU; j++) {
+            printf("+---");
+        }
+        printf("+\n");
+
+        // Contenu des cases
+        for (int j = 0; j < TAILLE_PLATEAU; j++) {
+	  printf("| %c ", tab[i][j].c.lettre);
+	  //printf("|   ");
+        }
+        printf("|\n");
+    }
+    
+    // Ligne inférieure finale
+    for (int j = 0; j < TAILLE_PLATEAU; j++) {
+        printf("+---");
+    }
+    printf("+\n");
 }
 void insert_caractere(caractere car,Case **tab,int x,int y){
-    if(tab[y][x].c.lettre!='.')
+    if(tab[y][x].c.lettre!=' ')
         printf("case n'est pas vide \n");
     else {
         tab[y][x].c=car;

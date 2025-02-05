@@ -1,0 +1,2 @@
+gcc -o scrabble_program scrabble.c
+./scrabble_program 

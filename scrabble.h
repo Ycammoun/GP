@@ -15,6 +15,22 @@ typedef struct {
     type_case type;   
     caractere c;      
 } Case;
+typedef struct {
+    int nblettres;       
+    caractere lettres[7]; 
+} Chevalet;
+
+typedef struct {
+    int score_actuel;
+    Chevalet chevalet_joueur;
+
+}Joueur;
+
+typedef struct {
+    int x;
+    int y;
+}couple;
+
 
 
 Case **init_plateau(int TAILLE_PLATEAU);

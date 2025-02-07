@@ -12,7 +12,17 @@
         {'U', 6, 1}, {'V', 2, 4}, {'W', 1, 10}, {'X', 1, 10}, {'Y', 1, 10}, 
         {'Z', 1, 10}
     };
+
 caractere vide = {' ', 9, 1};  
+couple cordonnees_case_mots_triple[8]={
+        {0, 0}, {0, 7}, {0, 14}, {7, 0},
+        {7, 14}, {14, 0}, {14, 7}, {14, 14}
+};
+couple cordonnees_case_mots_double[16]={
+    {1,1}, {2,2}, {3, 3}, {4,4},{13,1},{12 , 2},
+    {11, 3}, {10, 4}, {4,10},{3,11}, {2,12}, {1,13},
+    {10,10},{11,11},{12,12},{13,13}
+};
 const int TAILLE_PLATEAU = 15;
 
 Case **init_plateau(int TAILLE_PLATEAU) {
@@ -39,6 +49,25 @@ Case **init_plateau(int TAILLE_PLATEAU) {
 
     return resultat;
 }
+void init_case_triple_plateau(Case **plateau,couple cordonnees[]){
+    for (int i =0 ;i < 8; i++){
+        int x=cordonnees[i].x;
+        int y=cordonnees[i].y;
+        plateau[x][y].type=MT;
+    }
+    //return plateau;
+
+}
+void init_case_double_plateau(Case **plateau,couple cordonnees[]){
+    for (int i =0 ;i < 16; i++){
+        int x=cordonnees[i].x;
+        int y=cordonnees[i].y;
+        plateau[x][y].type=MD;
+    }
+    //return plateau;
+
+}
+
 
 /*void affiche_tab(Case **tab) {
     for (int i = 0; i < TAILLE_PLATEAU; i++) {
@@ -60,7 +89,6 @@ void affiche_tab(Case **tab) {
         // Contenu des cases
         for (int j = 0; j < TAILLE_PLATEAU; j++) {
 	  printf("| %c ", tab[i][j].c.lettre);
-	  //printf("|   ");
         }
         printf("|\n");
     }
@@ -71,6 +99,36 @@ void affiche_tab(Case **tab) {
     }
     printf("+\n");
 }
+
+void affiche_tab1(Case **tab) {
+    for (int i = 0; i < TAILLE_PLATEAU; i++) {
+        for (int j = 0; j < TAILLE_PLATEAU; j++) {
+            printf("+---");
+        }
+        printf("+\n");
+
+        for (int j = 0; j < TAILLE_PLATEAU; j++) {
+            char symbole;
+            switch (tab[i][j].type) {
+                case MT: symbole = 'T'; break; 
+                case MD: symbole = 'D'; break;  
+                case LT: symbole = '3'; break;  
+                case LD: symbole = '2'; break;  
+                default: symbole = ' '; break;  
+            }
+            printf("| %c ", symbole);
+        }
+        printf("|\n");
+    }
+    
+    for (int j = 0; j < TAILLE_PLATEAU; j++) {
+        printf("+---");
+    }
+    printf("+\n");
+}
+
+
+
 void insert_caractere(caractere car,Case **tab,int x,int y){
     if(tab[y][x].c.lettre!=' ')
         printf("case n'est pas vide \n");
@@ -81,10 +139,10 @@ void insert_caractere(caractere car,Case **tab,int x,int y){
 void ajout_caractere(Case **tab){
     int x,y;
     char car;
-    printf("donnez un caractere et ses cordonnes (exemple e 3 4) \n");
+    printf("donnez un caractere et ses cordonnées (exemple e 3 4) \n");
     scanf("%c %d %d",&car,&x,&y);
     if(x>=TAILLE_PLATEAU || y>=TAILLE_PLATEAU ||x<0 ||y<0){
-        printf("cordonné  depasse la taille du tableau \n");
+        printf("cordonnées  depassent la taille du tableau \n");
     }
     else if(! isalpha(car))
     printf("le caractere n est pas une lettre \n");
@@ -104,7 +162,10 @@ int main() {
     bool b=true;
     int n;
     Case **plateau = init_plateau(TAILLE_PLATEAU); 
-    affiche_tab(plateau);
+    init_case_triple_plateau(plateau,cordonnees_case_mots_triple);
+    init_case_double_plateau(plateau,cordonnees_case_mots_double);
+
+    affiche_tab1(plateau);
     while(b){
     ajout_caractere(plateau);
     affiche_tab(plateau);

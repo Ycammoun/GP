@@ -3,6 +3,7 @@
 #include <string.h>  
 #include <ctype.h>
 #include <stdbool.h>
+#include <string.h>
 #include "scrabble.h"
     caractere lettres[26] = {
         {'A', 9, 1}, {'B', 2, 3}, {'C', 2, 3}, {'D', 3, 2}, {'E', 15, 1}, 
@@ -67,6 +68,8 @@ void init_case_double_plateau(Case **plateau,couple cordonnees[]){
     //return plateau;
 
 }
+
+
 
 
 /*void affiche_tab(Case **tab) {
@@ -152,6 +155,53 @@ void ajout_caractere(Case **tab){
     }
 }
 
+bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale) {
+    int len = strlen(word);
+
+    if (est_verticale) {
+        if (y+len > TAILLE_PLATEAU) {
+            printf("Le mot dépasse les limites du plateau (vertical).\n");
+            return false;
+        }
+    } else {
+        if (x+len > TAILLE_PLATEAU) {
+            printf("Le mot dépasse les limites du plateau (horizontal).\n");
+            return false;
+        }
+    }
+
+    printf("Le mot peut être inséré.\n");
+    return true;
+}
+
+void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
+    int len=strlen(word);
+    caractere *mot=malloc(len*sizeof(caractere));
+    for(int i=0;i<len;i++){
+        mot[i].lettre=word[i];
+    }
+    if(!inserable(word,plateau,x,y,est_verticale)){
+        printf("Le mot ne peut pas être placé car il dépasse les bords du plateau.\n");
+        exit(EXIT_FAILURE);
+    }
+    else{
+        
+        if(est_verticale){
+            for(int i =0;i<len;i++){
+                insert_caractere(mot[i],plateau,x,y+i);
+            }
+
+        }
+        else{
+            for(int i =0;i<len;i++){
+                insert_caractere(mot[i],plateau,x+i,y);
+            }
+
+        }
+    }
+    free(mot);
+}
+
 
 
 
@@ -167,6 +217,9 @@ int main() {
 
     affiche_tab1(plateau);
     while(b){
+    inserable("hello",plateau,0,0,true);
+    insert_mot("hello",plateau,0,0,true);
+    insert_mot("bonjour",plateau,2,2,false);
     ajout_caractere(plateau);
     affiche_tab(plateau);
     printf("1 pour continuer 0 pour quitter \n");

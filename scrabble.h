@@ -37,6 +37,15 @@ Case **init_plateau(int TAILLE_PLATEAU);
 void affiche_tab(Case **tab);
 void insert_caractere(caractere car,Case **tab,int x,int y);
 void ajout_caractere(Case **tab);
+bool est_vide_case(Case **plateau ,int x , int y);
+bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale);
+void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale);
+void ajout_mot(Case **plateau);
+bool mot_alpha(char *mot);
+
+
+
+
 
 #endif 
 

@@ -305,6 +305,42 @@ bool mot_alpha(char *mot){
     return true;
 }
 
+int calcul_points(char *word,Case **plateau,int x,int y, bool est_verticale,Joueur joueur){
+    int total=0;
+    int len=strlen(word);
+    caractere *mot=malloc(len*sizeof(caractere));
+    for(int i=0;i<len;i++){
+        mot[i].lettre=toupper(word[i]);
+    }
+    if(est_verticale){
+        for(int i =0;i<len;i++){
+            if(plateau[x][y+i].type==N){
+                total+=mot[i].score;
+            }
+            else if(plateau[x][y+i].type==LD){
+                total+=mot[i].score*2;
+            }
+            else if(plateau[x][y+i].type==LT){
+                total+=mot[i].score*3;
+            }
+
+
+        }
+        for (int i =0;i<len;i++){
+            if (plateau[x][y+i].type==MD){
+                total*=2;
+            }
+            else if (plateau[x][y+i].type==MD){
+                total*=3;
+            }
+        }
+
+    }
+    return total;
+
+
+}
+
 
 
 

@@ -259,7 +259,7 @@ void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
     }
     free(mot);
 }
-void ajout_mot(Case **plateau){
+void ajout_mot(Case **plateau,Joueur *joueur){
     int x,y;
     char o;
     bool orientation =false;
@@ -293,6 +293,8 @@ void ajout_mot(Case **plateau){
     insert_mot(mot,plateau,x,y,orientation);
     int res=calcul_points(mot,plateau,x,y,orientation);
     printf("le mot a rapporté %d points \n",res);
+    joueur->score_actuel+=res;
+    printf("le score actuel est %d \n",joueur->score_actuel);
     //}
     }
 }
@@ -393,15 +395,32 @@ int main() {
     init_case_lettre_triple_plateau(plateau,cordonnees_cases_lettres_triples);
     affiche_tab(plateau);
 
+    Joueur joueur1;
+    joueur1.score_actuel=0;
+    //joueur1.chevalet_joueur.nblettres=0;
+    //joueur1.chevalet_joueur.lettres[7];
+    Joueur joueur2;
+    joueur2.score_actuel=0;
+    int tour=0;
     //affiche_tab1(plateau);
     while(b){
-    //inserable("hello",plateau,0,0,true);
-    //insert_mot("hello",plateau,0,0,true);
+        if(tour%2==0){
+            printf("joueur 1 \n");
+            ajout_mot(plateau,&joueur1);
+            affiche_tab(plateau);
 
-    //insert_mot("lit",plateau,0,2,false);
-    //ajout_caractere(plateau);
-    ajout_mot(plateau);
-    affiche_tab(plateau);
+        }
+        else{
+            printf("joueur 2 \n");
+            ajout_mot(plateau,&joueur2);
+            affiche_tab(plateau);
+
+        }
+        tour++;
+
+
+    //ajout_mot(plateau);
+    //affiche_tab(plateau);
     printf("1 pour continuer 0 pour quitter \n");
     scanf("%d",&n);
     if(n==0)

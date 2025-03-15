@@ -40,7 +40,7 @@ void ajout_caractere(Case **tab);
 bool est_vide_case(Case **plateau ,int x , int y);
 bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale);
 void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale);
-void ajout_mot(Case **plateau);
+void ajout_mot(Case **plateau,Joueur *joueur);
 bool mot_alpha(char *mot);
 int calcul_points(char *word,Case **plateau,int x,int y, bool est_verticale);
 void init_case_triple_plateau(Case **plateau,couple cordonnees[]);

@@ -322,10 +322,6 @@ int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) 
     int len = strlen(word);
 
     caractere *mot = malloc(len * sizeof(caractere));
-    if (mot == NULL) {
-        printf("Erreur d'allocation mémoire.\n");
-        return 0;
-    }
 
     for (int i = 0; i < len; i++) {
         mot[i].lettre = toupper(word[i]);

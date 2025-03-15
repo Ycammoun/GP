@@ -291,6 +291,8 @@ void ajout_mot(Case **plateau){
     //printf("le caractere n est pas une lettre \n");
     //else {
     insert_mot(mot,plateau,x,y,orientation);
+    int res=calcul_points(mot,plateau,x,y,orientation);
+    printf("le mot a rapporté %d points \n",res);
     //}
     }
 }
@@ -304,42 +306,80 @@ bool mot_alpha(char *mot){
     }
     return true;
 }
-
-int calcul_points(char *word,Case **plateau,int x,int y, bool est_verticale,Joueur joueur){
-    int total=0;
-    int len=strlen(word);
-    caractere *mot=malloc(len*sizeof(caractere));
-    for(int i=0;i<len;i++){
-        mot[i].lettre=toupper(word[i]);
-    }
-    if(est_verticale){
-        for(int i =0;i<len;i++){
-            if(plateau[x][y+i].type==N){
-                total+=mot[i].score;
-            }
-            else if(plateau[x][y+i].type==LD){
-                total+=mot[i].score*2;
-            }
-            else if(plateau[x][y+i].type==LT){
-                total+=mot[i].score*3;
-            }
-
-
+int get_score(char lettre) {
+    lettre = toupper(lettre);
+    for (int i = 0; i < 26; i++) {
+        if (lettres[i].lettre == lettre) {
+            return lettres[i].score;
         }
-        for (int i =0;i<len;i++){
-            if (plateau[x][y+i].type==MD){
-                total*=2;
-            }
-            else if (plateau[x][y+i].type==MD){
-                total*=3;
-            }
-        }
-
     }
-    return total;
-
-
+    return 0; 
 }
+
+int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) {
+    int total=0 ;
+    int multiplicateur = 1;
+    int len = strlen(word);
+
+    caractere *mot = malloc(len * sizeof(caractere));
+    if (mot == NULL) {
+        printf("Erreur d'allocation mémoire.\n");
+        return 0;
+    }
+
+    for (int i = 0; i < len; i++) {
+        mot[i].lettre = toupper(word[i]);
+        mot[i].score = get_score(mot[i].lettre);
+    }
+
+    if (est_verticale) {
+        for (int i = 0; i < len; i++) {
+
+            if (plateau[x][y + i].type == N) {
+                total += mot[i].score;
+            } else if (plateau[x][y + i].type == LD) {
+                total += mot[i].score * 2;
+            } else if (plateau[x][y + i].type == LT) {
+                total += mot[i].score * 3;
+            }
+
+            if (plateau[x][y + i].type == MD) {
+
+                total += mot[i].score;
+
+
+                multiplicateur *= 2;
+            } else if (plateau[x][y + i].type == MT) {
+                total += mot[i].score;
+                multiplicateur *= 3;
+            }
+        }
+    } else {
+        for (int i = 0; i < len; i++) {
+
+            if (plateau[x + i][y].type == N) {
+                total += mot[i].score;
+            } else if (plateau[x + i][y].type == LD) {
+                total += mot[i].score * 2;
+            } else if (plateau[x + i][y].type == LT) {
+                total += mot[i].score * 3;
+            }
+
+            if (plateau[x + i][y].type == MD) {
+                total += mot[i].score;
+                multiplicateur *= 2;
+            } else if (plateau[x + i][y].type == MT) {
+                total += mot[i].score;
+                multiplicateur *= 3;
+            }
+        }
+    }
+
+    total *= multiplicateur;  
+    free(mot); 
+    return total;
+}
+
 
 
 
@@ -361,7 +401,6 @@ int main() {
     while(b){
     //inserable("hello",plateau,0,0,true);
     //insert_mot("hello",plateau,0,0,true);
-
 
     //insert_mot("lit",plateau,0,2,false);
     //ajout_caractere(plateau);

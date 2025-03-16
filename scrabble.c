@@ -193,11 +193,15 @@ void ajout_caractere(Case **tab){
     }
 }
 bool est_vide_case(Case **plateau ,int x , int y){
+    if (x < 0 || x >= TAILLE_PLATEAU || y < 0 || y >= TAILLE_PLATEAU) {
+        return true;
+    }
     return plateau[x][y].c.lettre==' ';
 }
 
 bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale) {
     int len = strlen(word);
+    bool adjacent = false;
 
     if (est_verticale) {
         if (y+len > TAILLE_PLATEAU) {
@@ -206,12 +210,17 @@ bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale) {
         }
         for(int i=0;i<len;i++){
             if(!est_vide_case(plateau,x,y+i)&& plateau[x][y+i].c.lettre!=toupper(word[i])){
-                printf("le mot ne peut pas etre place car il y a deja un mot sur son chemin\n ");
-
+                printf("le mot ne peut pas etre place car il y a deja un mot sur son chemin\n");
                 return false;
             }
-  
-
+            if (x == (TAILLE_PLATEAU - 1) / 2 && (y+i) == (TAILLE_PLATEAU - 1) / 2) {
+                adjacent = true;
+            } else {
+                if (!est_vide_case(plateau, x - 1, y + i)) adjacent = true;
+                if (!est_vide_case(plateau, x + 1, y + i)) adjacent = true;
+                if (!est_vide_case(plateau, x, y + i - 1)) adjacent = true;
+                if (!est_vide_case(plateau, x, y + i + 1)) adjacent = true;
+            }
         }
     } else {
         if (x+len > TAILLE_PLATEAU) {
@@ -221,16 +230,28 @@ bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale) {
         for(int i=0;i<len;i++){
             if(!est_vide_case(plateau,x+i,y)&& plateau[x+i][y].c.lettre!=toupper(word[i])){
                 printf("le mot ne peut pas etre place car il y a deja un mot sur son chemin \n");
-
                 return false;
+            }
+            if ((x+i) == (TAILLE_PLATEAU - 1) / 2 && y == (TAILLE_PLATEAU - 1) / 2) {
+                adjacent = true;
+            } else {
+                if (!est_vide_case(plateau, x + i - 1, y)) adjacent = true;
+                if (!est_vide_case(plateau, x + i + 1, y)) adjacent = true;
+                if (!est_vide_case(plateau, x + i, y - 1)) adjacent = true;
+                if (!est_vide_case(plateau, x + i, y + 1)) adjacent = true;
             }
         }
     }
 
-
+    if (adjacent == false) {
+        printf("Le mot ne peut pas être placé ici (il n'est pas adjacent et ne passe pas par le milieu)");
+        return false;
+    }
     printf("Le mot peut être inséré.\n");
     return true;
 }
+
+
 
 void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
     

@@ -312,10 +312,15 @@ void ajout_mot(Case **plateau,Joueur *joueur){
     //printf("le caractere n est pas une lettre \n");
     //else {
     insert_mot(mot,plateau,x,y,orientation);
-    int res=calcul_points(mot,plateau,x,y,orientation);
-    printf("le mot a rapporté %d points \n",res);
-    joueur->score_actuel+=res;
-    printf("le score actuel est %d \n",joueur->score_actuel);
+        if(inserable(mot,plateau,x,y,orientation)){
+        int res=calcul_points(mot,plateau,x,y,orientation);
+        printf("le mot a rapporté %d points \n",res);
+        joueur->score_actuel+=res;
+        printf("le score actuel est %d \n",joueur->score_actuel);
+        }
+        else{
+            printf("le mot n a pas rapporté de points \n");
+        }
     //}
     }
 }

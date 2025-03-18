@@ -13,7 +13,8 @@ typedef struct {
 
 typedef struct {
     type_case type;   
-    caractere c;      
+    caractere c;  
+    bool est_placee;    
 } Case;
 typedef struct {
     int nblettres;       

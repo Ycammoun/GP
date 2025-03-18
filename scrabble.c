@@ -52,7 +52,8 @@ Case **init_plateau(int TAILLE_PLATEAU) {
     for (int i = 0; i < TAILLE_PLATEAU; i++) {
         for (int j = 0; j < TAILLE_PLATEAU; j++) {
             resultat[i][j].type = N;  
-            resultat[i][j].c = vide;     
+            resultat[i][j].c = vide;
+            resultat[i][j].est_placee = false;     
         }
     }
 
@@ -173,10 +174,18 @@ void affiche_tab1(Case **tab) {
 
 
 
-void insert_caractere(caractere car,Case **tab,int x,int y){
+/*void insert_caractere(caractere car,Case **tab,int x,int y){
     if(tab[x][y].c.lettre==' ')
         tab[x][y].c=car;
+}*/
+void insert_caractere(caractere car, Case **tab, int x, int y) {
+    if (tab[x][y].c.lettre == ' ') {  
+        tab[x][y].c.lettre = car.lettre;  // ✅ Insère uniquement la lettre
+        tab[x][y].c.score = car.score;    // ✅ Insère le score associé à cette lettre
+        tab[x][y].c.nb = car.nb;          // ✅ Insère la quantité si nécessaire
+    }
 }
+
 void ajout_caractere(Case **tab){
     int x,y;
     char car;
@@ -259,6 +268,7 @@ void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
     caractere *mot=malloc(len*sizeof(caractere));
     for(int i=0;i<len;i++){
         mot[i].lettre=toupper(word[i]);
+    
     }
     if(!inserable(word,plateau,x,y,est_verticale)){
         printf("Le mot ne peut pas être placé .\n");
@@ -345,7 +355,7 @@ int get_score(char lettre) {
 }
 
 int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) {
-    int total=0 ;
+    int total = 0;
     int multiplicateur = 1;
     int len = strlen(word);
 
@@ -358,51 +368,58 @@ int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) 
 
     if (est_verticale) {
         for (int i = 0; i < len; i++) {
+            total += mot[i].score;  
 
-            if (plateau[x][y + i].type == N) {
-                total += mot[i].score;
-            } else if (plateau[x][y + i].type == LD) {
-                total += mot[i].score * 2;
-            } else if (plateau[x][y + i].type == LT) {
-                total += mot[i].score * 3;
+            if (plateau[x][y + i].type == LD && !plateau[x][y + i].est_placee) {
+                total += mot[i].score;   
+                plateau[x][y + i].est_placee = true;  
+            } 
+            else if (plateau[x][y + i].type == LT && !plateau[x][y + i].est_placee) {
+                total += mot[i].score * 2;  
+                plateau[x][y + i].est_placee = true;  
             }
 
-            if (plateau[x][y + i].type == MD) {
-
-                total += mot[i].score;
-
-
-                multiplicateur *= 2;
-            } else if (plateau[x][y + i].type == MT) {
-                total += mot[i].score;
-                multiplicateur *= 3;
+            // Gestion des multiplicateurs de mots
+            if (plateau[x][y + i].type == MD && !plateau[x][y + i].est_placee) {
+                multiplicateur *= 2;  // Mot Double
+                plateau[x][y + i].est_placee = true;  
+            } 
+            else if (plateau[x][y + i].type == MT && !plateau[x][y + i].est_placee) {
+                multiplicateur *= 3;  // Mot Triple
+                plateau[x][y + i].est_placee = true; 
             }
         }
     } else {
         for (int i = 0; i < len; i++) {
+            total += mot[i].score;  
 
-            if (plateau[x + i][y].type == N) {
-                total += mot[i].score;
-            } else if (plateau[x + i][y].type == LD) {
-                total += mot[i].score * 2;
-            } else if (plateau[x + i][y].type == LT) {
-                total += mot[i].score * 3;
+            
+            if (plateau[x + i][y].type == LD && !plateau[x + i][y].est_placee) {
+                total += mot[i].score;   
+                plateau[x + i][y].est_placee = true;  
+            } 
+            else if (plateau[x + i][y].type == LT && !plateau[x + i][y].est_placee) {
+                total += mot[i].score * 2; 
+                plateau[x + i][y].est_placee = true;  
             }
 
-            if (plateau[x + i][y].type == MD) {
-                total += mot[i].score;
-                multiplicateur *= 2;
-            } else if (plateau[x + i][y].type == MT) {
-                total += mot[i].score;
-                multiplicateur *= 3;
+            
+            if (plateau[x + i][y].type == MD && !plateau[x + i][y].est_placee) {
+                multiplicateur *= 2;  
+                plateau[x + i][y].est_placee = true;  
+            } 
+            else if (plateau[x + i][y].type == MT && !plateau[x + i][y].est_placee) {
+                multiplicateur *= 3;  
+                plateau[x + i][y].est_placee = true;  
             }
         }
     }
 
-    total *= multiplicateur;  
-    free(mot); 
+    total *= multiplicateur;
+    free(mot);
     return total;
 }
+
 
 
 

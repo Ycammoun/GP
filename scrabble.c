@@ -19,10 +19,10 @@ couple cordonnees_case_mots_triple[8]={
         {0, 0}, {0, 7}, {0, 14}, {7, 0},
         {7, 14}, {14, 0}, {14, 7}, {14, 14}
 };
-couple cordonnees_case_mots_double[16]={
+couple cordonnees_case_mots_double[17]={
     {1,1}, {2,2}, {3, 3}, {4,4},{13,1},{12 , 2},
     {11, 3}, {10, 4}, {4,10},{3,11}, {2,12}, {1,13},
-    {10,10},{11,11},{12,12},{13,13}
+    {10,10},{11,11},{12,12},{13,13},{7,7}
 };
 couple cordonnees_cases_lettres_double[24]={
     {3,0},{11,0},{6,2},{8,2},{0,3},{7,3},{14,3},{2,6},{6,6},{8,6},{12,6},{3,7},{11,7},{2,8},{6,8},{8,8},
@@ -69,7 +69,7 @@ void init_case_triple_plateau(Case **plateau,couple cordonnees[]){
 
 }
 void init_case_double_plateau(Case **plateau,couple cordonnees[]){
-    for (int i =0 ;i < 16; i++){
+    for (int i =0 ;i < 17; i++){
         int x=cordonnees[i].x;
         int y=cordonnees[i].y;
         plateau[x][y].type=MD;
@@ -253,7 +253,7 @@ bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale) {
     }
 
     if (adjacent == false) {
-        printf("Le mot ne peut pas être placé ici (il n'est pas adjacent et ne passe pas par le milieu)");
+        printf("Le mot ne peut pas être placé ici (il n'est pas adjacent et ne passe pas par le milieu)\n");
         return false;
     }
     printf("Le mot peut être inséré.\n");
@@ -315,7 +315,7 @@ int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
     
     }
     if(!inserable(word,plateau,x,y,est_verticale)){
-        printf("Le mot ne peut pas être placé .\n");
+        points=-1;
     }
     else{
         
@@ -347,12 +347,16 @@ int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
 
         }
     }
-    ListMot[e]=check_mot(x,y,est_verticale,plateau);
-    if(strlen(ListMot[e])>1){
-        points+=calcul_points1(ListMot[e],plateau,x,y,est_verticale);
+
+    if(points!=-1){
+        ListMot[e]=check_mot(x,y,est_verticale,plateau);
+        if(strlen(ListMot[e])>1){
+            points+=calcul_points1(ListMot[e],plateau,x,y,est_verticale);
+        }
+        e++;
     }
     printf("liste des mots formées\n");
-    for(int i=0;i<e+1;i++){
+    for(int i=0;i<e;i++){
         if(strlen(ListMot[i])>1){
             printf("%s \n",ListMot[i]);
         }
@@ -360,7 +364,12 @@ int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
 
 
     }
-    printf("le mot a rapporté %d points \n",points);
+    if(points==-1)
+    
+        printf("le mot n'a pas pu être placé, veuillez essayer à nouveau \n");
+    
+    else
+        printf("le mot a rapporté %d points \n",points);
     
     free(ListMot);
     free(mot);
@@ -373,6 +382,8 @@ void ajout_mot(Case **plateau,Joueur *joueur){
     char o;
     bool orientation =false;
     char mot[TAILLE_PLATEAU+1];
+    int points=-1;
+    while(points==-1){
     do{
     printf("donnez un mot et ses cordonnées et son orientation  (exemple bonjour 3 4 v) \n");
     scanf("%s %d %d %c",mot,&x,&y,&o);
@@ -399,15 +410,16 @@ void ajout_mot(Case **plateau,Joueur *joueur){
     //else if(! isalpha(car))
     //printf("le caractere n est pas une lettre \n");
     //else {
-
-
-        joueur->score_actuel+=insert_mot(mot,plateau,x,y,orientation);
+        points=insert_mot(mot,plateau,x,y,orientation);
+    }
+}
+        joueur->score_actuel+=points;
         printf("le score actuel est %d \n",joueur->score_actuel);
 
         removeMultiplicateur(plateau);
 
     
-    }
+    
 }
 
 

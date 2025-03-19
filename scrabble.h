@@ -54,6 +54,8 @@ void free_plateau(Case **plateau);
 int calcul_points1(char *word, Case **plateau, int x, int y, bool est_verticale);
 void removeMultiplicateur(Case **plateau);
 int get_score(char lettre);
+//bool mot_valide(char *word , char **dictionnaire);
+
 
 
 

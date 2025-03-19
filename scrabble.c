@@ -118,7 +118,7 @@ void affiche_tab(Case **tab) {
 
         // Contenu des cases
         for (int i = 0; i < TAILLE_PLATEAU; i++) {
-            char symbole;
+            char symbole = ' ';
             switch (tab[i][j].type) {
                 case MT: symbole = 'T'; break; 
                 case MD: symbole = 'D'; break;  
@@ -259,13 +259,57 @@ bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale) {
     printf("Le mot peut être inséré.\n");
     return true;
 }
+char *check_mot(int x,int y , bool est_verticale,Case **plateau)
+{
+    char *mot=malloc((TAILLE_PLATEAU+1)*sizeof(char));
+    if(est_vide_case(plateau,x,y)){
+        printf("la case est vide \n");
+    }
+    else{
+        int i=0;
+        if (est_verticale){
+            while(!est_vide_case(plateau,x,y-i-1)){
+                i++;
+            }
+            int j=0;
+            while(!est_vide_case(plateau,x,y-i)){
+                i--;
+                mot[j]=plateau[x][y-i-1].c.lettre;
+                j++;
+                
+            }
 
 
+            
 
-void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
+        }
+        else{
+            while(!est_vide_case(plateau,x-i-1,y)){
+                i++;
+            }
+            int j=0;
+            while(!est_vide_case(plateau,x-i,y)){
+                i--;
+                mot[j]=plateau[x-i-1][y].c.lettre;
+                j++;
+                
+            }
+
+        }
+    }
+    return mot;
+    
+}
+
+
+int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
+
+    char **ListMot =malloc(16*sizeof(char *));
+    int e=0;
+    int points=0;
     
     int len=strlen(word);
-    caractere *mot=malloc(len*sizeof(caractere));
+    caractere *mot=malloc((len+1)*sizeof(caractere));
     for(int i=0;i<len;i++){
         mot[i].lettre=toupper(word[i]);
     
@@ -277,24 +321,58 @@ void insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
         
         if(est_verticale){
             for(int i =0;i<len;i++){
-                insert_caractere(mot[i],plateau,x,y+i);
+                if(est_vide_case(plateau,x,y+i)){
+                    insert_caractere(mot[i],plateau,x,y+i);
+                    ListMot[e]=check_mot(x,y+i,!est_verticale,plateau);
+                    if(strlen(ListMot[e])>1)
+                        points+=calcul_points1(ListMot[e],plateau,x,y+i,!est_verticale);
+                    e++;
+                }
+                
             }
 
         }
         else{
             for(int i =0;i<len;i++){
-                insert_caractere(mot[i],plateau,x+i,y);
+                if(est_vide_case(plateau,x+i,y)){
+                    insert_caractere(mot[i],plateau,x+i,y);
+                    ListMot[e]=check_mot(x+i,y,!est_verticale,plateau);
+                    if (strlen(ListMot[e])>1){
+                        points+=calcul_points1(ListMot[e],plateau,x+i,y,!est_verticale);
+                    }
+                    e++;
+                }
+                
             }
 
         }
     }
+    ListMot[e]=check_mot(x,y,est_verticale,plateau);
+    if(strlen(ListMot[e])>1){
+        points+=calcul_points1(ListMot[e],plateau,x,y,est_verticale);
+    }
+    printf("liste des mots formées\n");
+    for(int i=0;i<e+1;i++){
+        if(strlen(ListMot[i])>1){
+            printf("%s \n",ListMot[i]);
+        }
+        free(ListMot[i]);
+
+
+    }
+    printf("le mot a rapporté %d points \n",points);
+    
+    free(ListMot);
     free(mot);
+    return points;
+
+
 }
 void ajout_mot(Case **plateau,Joueur *joueur){
     int x,y;
     char o;
     bool orientation =false;
-    char mot[TAILLE_PLATEAU];
+    char mot[TAILLE_PLATEAU+1];
     do{
     printf("donnez un mot et ses cordonnées et son orientation  (exemple bonjour 3 4 v) \n");
     scanf("%s %d %d %c",mot,&x,&y,&o);
@@ -321,19 +399,20 @@ void ajout_mot(Case **plateau,Joueur *joueur){
     //else if(! isalpha(car))
     //printf("le caractere n est pas une lettre \n");
     //else {
-    insert_mot(mot,plateau,x,y,orientation);
-        if(inserable(mot,plateau,x,y,orientation)){
-        int res=calcul_points(mot,plateau,x,y,orientation);
-        printf("le mot a rapporté %d points \n",res);
-        joueur->score_actuel+=res;
+
+
+        joueur->score_actuel+=insert_mot(mot,plateau,x,y,orientation);
         printf("le score actuel est %d \n",joueur->score_actuel);
-        }
-        else{
-            printf("le mot n a pas rapporté de points \n");
-        }
-    //}
+
+        removeMultiplicateur(plateau);
+
+    
     }
 }
+
+
+
+
 bool mot_alpha(char *mot){
     int len =strlen(mot);
     for(int i=0;i<len;i++){
@@ -359,7 +438,7 @@ int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) 
     int multiplicateur = 1;
     int len = strlen(word);
 
-    caractere *mot = malloc(len * sizeof(caractere));
+    caractere *mot = malloc((len+1) * sizeof(caractere));
 
     for (int i = 0; i < len; i++) {
         mot[i].lettre = toupper(word[i]);
@@ -367,62 +446,157 @@ int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) 
     }
 
     if (est_verticale) {
+        int fy = y;
+        while (!est_vide_case(plateau, x, fy-1)) {
+            fy--;
+        }
+
+        
         for (int i = 0; i < len; i++) {
             total += mot[i].score;  
 
-            if (plateau[x][y + i].type == LD && !plateau[x][y + i].est_placee) {
+            if (plateau[x][fy + i].type == LD && !plateau[x][fy + i].est_placee) {
                 total += mot[i].score;   
-                plateau[x][y + i].est_placee = true;  
+                plateau[x][fy + i].est_placee = true;  
             } 
-            else if (plateau[x][y + i].type == LT && !plateau[x][y + i].est_placee) {
+            else if (plateau[x][fy + i].type == LT && !plateau[x][fy + i].est_placee) {
                 total += mot[i].score * 2;  
-                plateau[x][y + i].est_placee = true;  
+                plateau[x][fy + i].est_placee = true;  
             }
+            printf(" %d points.\n", total);
 
             // Gestion des multiplicateurs de mots
-            if (plateau[x][y + i].type == MD && !plateau[x][y + i].est_placee) {
+            if (plateau[x][fy + i].type == MD && !plateau[x][fy + i].est_placee) {
                 multiplicateur *= 2;  // Mot Double
-                plateau[x][y + i].est_placee = true;  
+                plateau[x][fy + i].est_placee = true;  
             } 
-            else if (plateau[x][y + i].type == MT && !plateau[x][y + i].est_placee) {
+            else if (plateau[x][fy + i].type == MT && !plateau[x][fy + i].est_placee) {
                 multiplicateur *= 3;  // Mot Triple
-                plateau[x][y + i].est_placee = true; 
+                plateau[x][fy + i].est_placee = true; 
             }
         }
     } else {
+        int fx = x;
+        while (!est_vide_case(plateau, fx-1, y)) {
+            fx--;
+        }
         for (int i = 0; i < len; i++) {
             total += mot[i].score;  
 
             
-            if (plateau[x + i][y].type == LD && !plateau[x + i][y].est_placee) {
+            if (plateau[fx + i][y].type == LD && !plateau[fx + i][y].est_placee) {
                 total += mot[i].score;   
-                plateau[x + i][y].est_placee = true;  
+                plateau[fx + i][y].est_placee = true;  
             } 
-            else if (plateau[x + i][y].type == LT && !plateau[x + i][y].est_placee) {
+            else if (plateau[fx + i][y].type == LT && !plateau[fx + i][y].est_placee) {
                 total += mot[i].score * 2; 
-                plateau[x + i][y].est_placee = true;  
+                plateau[fx + i][y].est_placee = true;  
             }
+            printf(" %d points.\n", total);
 
             
-            if (plateau[x + i][y].type == MD && !plateau[x + i][y].est_placee) {
+            if (plateau[fx + i][y].type == MD && !plateau[fx + i][y].est_placee) {
                 multiplicateur *= 2;  
-                plateau[x + i][y].est_placee = true;  
+                plateau[fx + i][y].est_placee = true;  
             } 
-            else if (plateau[x + i][y].type == MT && !plateau[x + i][y].est_placee) {
+            else if (plateau[fx + i][y].type == MT && !plateau[fx + i][y].est_placee) {
                 multiplicateur *= 3;  
-                plateau[x + i][y].est_placee = true;  
+                plateau[fx + i][y].est_placee = true;  
             }
         }
     }
 
     total *= multiplicateur;
+    printf("Le mot %s a rapporté %d points.\n", word, total);
     free(mot);
     return total;
 }
 
 
 
+int calcul_points1(char *word, Case **plateau, int x, int y, bool est_verticale) {
+    int total = 0;
+    int multiplicateur = 1;
+    int len = strlen(word);
 
+    caractere *mot = malloc((len+1) * sizeof(caractere));
+
+    for (int i = 0; i < len; i++) {
+        mot[i].lettre = toupper(word[i]);
+        mot[i].score = get_score(mot[i].lettre);
+    }
+
+    if (est_verticale) {
+        int fy = y;
+        while (!est_vide_case(plateau, x, fy-1)) {
+            fy--;
+        }
+
+        
+        for (int i = 0; i < len; i++) {
+            total += mot[i].score;  
+
+            if (plateau[x][fy + i].type == LD ) {
+                total += mot[i].score;   
+            } 
+            else if (plateau[x][fy + i].type == LT ) {
+                total += mot[i].score * 2;  
+            }
+            printf(" %d points.\n", total);
+
+            // Gestion des multiplicateurs de mots
+            if (plateau[x][fy + i].type == MD ) {
+                multiplicateur *= 2;  // Mot Double
+          
+            } 
+            else if (plateau[x][fy + i].type == MT ) {
+                multiplicateur *= 3;  // Mot Triple
+            }
+        }
+    } else {
+        int fx = x;
+        while (!est_vide_case(plateau, fx-1, y)) {
+            fx--;
+        }
+        for (int i = 0; i < len; i++) {
+            total += mot[i].score;  
+
+            
+            if (plateau[fx + i][y].type == LD ) {
+                total += mot[i].score;   
+            } 
+            else if (plateau[fx + i][y].type == LT ) {
+                total += mot[i].score * 2; 
+            }
+            printf(" %d points.\n", total);
+
+            
+            if (plateau[fx + i][y].type == MD ) {
+                multiplicateur *= 2;  
+            } 
+            else if (plateau[fx + i][y].type == MT) {
+                multiplicateur *= 3;  
+            }
+        }
+    }
+
+    total *= multiplicateur;
+    printf("Le mot %s a rapporté %d points.\n", word, total);
+    free(mot);
+    return total;
+}
+void removeMultiplicateur(Case **plateau){
+    
+    for(int i=0;i<TAILLE_PLATEAU;i++){
+        for(int j=0;j<TAILLE_PLATEAU;j++){
+            if(!est_vide_case(plateau,i,j)){
+                plateau[i][j].type=N;
+
+
+            }
+        }
+    }
+}
 
 
 
@@ -452,11 +626,14 @@ int main() {
             ajout_mot(plateau,&joueur1);
             affiche_tab(plateau);
 
+
         }
         else{
             printf("joueur 2 \n");
             ajout_mot(plateau,&joueur2);
+
             affiche_tab(plateau);
+
 
         }
         tour++;

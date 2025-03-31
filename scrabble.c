@@ -475,7 +475,7 @@ int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) 
                 total += mot[i].score * 2;  
                 plateau[x][fy + i].est_placee = true;  
             }
-            printf(" %d points.\n", total);
+            //printf(" %d points.\n", total);
 
             // Gestion des multiplicateurs de mots
             if (plateau[x][fy + i].type == MD && !plateau[x][fy + i].est_placee) {
@@ -504,7 +504,7 @@ int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) 
                 total += mot[i].score * 2; 
                 plateau[fx + i][y].est_placee = true;  
             }
-            printf(" %d points.\n", total);
+            //printf(" %d points.\n", total);
 
             
             if (plateau[fx + i][y].type == MD && !plateau[fx + i][y].est_placee) {
@@ -554,7 +554,7 @@ int calcul_points1(char *word, Case **plateau, int x, int y, bool est_verticale)
             else if (plateau[x][fy + i].type == LT ) {
                 total += mot[i].score * 2;  
             }
-            printf(" %d points.\n", total);
+            //printf(" %d points.\n", total);
 
             // Gestion des multiplicateurs de mots
             if (plateau[x][fy + i].type == MD ) {
@@ -580,7 +580,7 @@ int calcul_points1(char *word, Case **plateau, int x, int y, bool est_verticale)
             else if (plateau[fx + i][y].type == LT ) {
                 total += mot[i].score * 2; 
             }
-            printf(" %d points.\n", total);
+            //printf(" %d points.\n", total);
 
             
             if (plateau[fx + i][y].type == MD ) {
@@ -609,13 +609,88 @@ void removeMultiplicateur(Case **plateau){
         }
     }
 }
+char *majuscule_mot(char *mot) {
+    char *mot_majuscule = malloc(strlen(mot) + 1);  // +1 pour le caractère nul '\0'
+    if (mot_majuscule == NULL) {
+        printf("Erreur d'allocation mémoire.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; mot[i] != '\0'; i++) {
+        mot_majuscule[i] = toupper(mot[i]);
+    }
+    mot_majuscule[strlen(mot)] = '\0';  // Ajoute le caractère de fin de chaîne
+
+    return mot_majuscule;
+}
+bool mot_valide(char *word , char *dictionnaire){
+    FILE *file = fopen(dictionnaire, "r");
+    if (file == NULL) {
+        printf("Erreur d'ouverture du fichier dictionnaire.\n");
+        return false;
+    }
+
+    char ligne[TAILLE_PLATEAU + 1];
+    while (fgets(ligne, sizeof(ligne), file) != NULL) {
+        ligne[strcspn(ligne, "\n")] = '\0';  // Supprime le saut de ligne
+        if (strcmp(majuscule_mot(word), ligne) == 0) {
+            printf("Le mot %s est valide.\n", word);
+            fclose(file);
+            return true;  
+        }
+    }
+    //printf("Le mot %s n'est pas valide.\n", word);
+    fclose(file);
+    return false;  
+}
+char **tous_les_mots(Chevalet *chevalet){
+    char **ListMot =malloc(5040*sizeof(char *));
+    char *mot=malloc(8*sizeof(char));
+    for (int i=0;i<5040;i++){
+        ListMot[i]=malloc(8*sizeof(char));
+    }
+    int i=0;
+    for (int a = 0; a < 7; a++) {
+        for (int b = 0; b < 6; b++) {
+            for (int c = 0; c < 5; c++) {
+                for (int d = 0; d < 4; d++) {
+                    for (int e = 0; e < 3; e++) {
+                        for (int f = 0; f < 2; f++) {
+                            for (int g = 0; g < 1; g++) {
+                                char mot[8]; 
+                                mot[0] = chevalet->lettres[a].lettre;
+                                mot[1] = chevalet->lettres[b].lettre;
+                                mot[2] = chevalet->lettres[c].lettre;
+                                mot[3] = chevalet->lettres[d].lettre;
+                                mot[4] = chevalet->lettres[e].lettre;
+                                mot[5] = chevalet->lettres[f].lettre;
+                                mot[6] = chevalet->lettres[g].lettre;
+                                mot[7] = '\0';  
+
+                                strcpy(ListMot[i], mot);
+                                i++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    printf("les mots possibles sont : \n");
+    for (int i=0;i<5040;i++){
+        printf("%s \n",ListMot[i]);
+    }
+    return ListMot;
+
+}
+
 
 
 
 
 
 int main() {
-    bool b=true;
+    /*bool b=true;
     int n;
     Case **plateau = init_plateau(TAILLE_PLATEAU); 
     init_case_triple_plateau(plateau,cordonnees_case_mots_triple);
@@ -666,7 +741,29 @@ int main() {
     for (int i = 0; i < TAILLE_PLATEAU; i++) {
         free(plateau[i]);
     }
-    free(plateau);
+    free(plateau);*/
+    Chevalet chevalet;
+    chevalet.nblettres=7;   
+    chevalet.lettres[0].lettre='A';
+    chevalet.lettres[1].lettre='B';
+    chevalet.lettres[2].lettre='A';
+    chevalet.lettres[3].lettre='C';
+    chevalet.lettres[4].lettre='U';         
+    chevalet.lettres[5].lettre='L';
+    chevalet.lettres[6].lettre='E';
+    char **L=tous_les_mots(&chevalet);
+    for (int i=0;i<5040;i++){
+        bool b=mot_valide(L[i], "dictionnaire.txt");
+        if(b){
+            printf("le mot %s est valide \n",L[i]);
+        }
+
+    }
+    for (int i=0;i<5040;i++){
+        free(L[i]);
+    }
+    free(L);
+
 
     return 0;
 }

@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 #include "scrabble.h"
     caractere lettres[26] = {
         {'A', 9, 1}, {'B', 2, 3}, {'C', 2, 3}, {'D', 3, 2}, {'E', 15, 1}, 
@@ -13,6 +14,14 @@
         {'U', 6, 1}, {'V', 2, 4}, {'W', 1, 10}, {'X', 1, 10}, {'Y', 1, 10}, 
         {'Z', 1, 10}
     };
+    /*caractere lettres[26] = {
+        {'A', 1, 1}, {'B', 1, 3}, {'C', 1, 3}, {'D', 1, 2}, {'E', 1, 1}, 
+        {'F', 1, 4}, {'G', 1, 2}, {'H', 1, 4}, {'I', 1, 1}, {'J', 1, 8}, 
+        {'K', 1, 10}, {'L', 1, 1}, {'M', 1, 2}, {'N', 1, 1}, {'O', 1, 1}, 
+        {'P', 1, 3}, {'Q', 1, 8}, {'R', 1, 1}, {'S', 1, 1}, {'T', 1, 1}, 
+        {'U', 1, 1}, {'V', 1, 4}, {'W', 1, 10}, {'X', 1, 10}, {'Y', 1, 10}, 
+        {'Z', 1, 10}
+    };*/
 
 caractere vide = {' ', 9, 1};  
 couple cordonnees_case_mots_triple[8]={
@@ -302,14 +311,17 @@ char *check_mot(int x,int y , bool est_verticale,Case **plateau)
 }
 
 
-int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
+int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale, int taille_dic, Joueur *joueur){
 
     char **ListMot =malloc(16*sizeof(char *));
     int e=0;
     int points=0;
+    bool ok_chevalet;
     
     int len=strlen(word);
+    bool use_lettre[len];
     caractere *mot=malloc((len+1)*sizeof(caractere));
+    int *placement[7];
     for(int i=0;i<len;i++){
         mot[i].lettre=toupper(word[i]);
     
@@ -323,10 +335,23 @@ int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
             for(int i =0;i<len;i++){
                 if(est_vide_case(plateau,x,y+i)){
                     insert_caractere(mot[i],plateau,x,y+i);
+                    use_lettre[i]=true;
+                    if(!verif_chevalet(*joueur,mot[i].lettre)){
+                        ok_chevalet=false;
+                    }
+                    else{
+                        ok_chevalet=true;
+                    }
                     ListMot[e]=check_mot(x,y+i,!est_verticale,plateau);
-                    if(strlen(ListMot[e])>1)
-                        points+=calcul_points1(ListMot[e],plateau,x,y+i,!est_verticale);
-                    e++;
+                    /*if(strlen(ListMot[e])>1)
+                        points+=calcul_points1(ListMot[e],plateau,x,y+i,!est_verticale);*/
+                        placement[e]=malloc(2*sizeof(int));
+                        placement[e][0]=x;
+                        placement[e][1]=y+i;                    
+                        e++;
+
+                } else {
+                    use_lettre[i]=false;
                 }
                 
             }
@@ -336,11 +361,23 @@ int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
             for(int i =0;i<len;i++){
                 if(est_vide_case(plateau,x+i,y)){
                     insert_caractere(mot[i],plateau,x+i,y);
-                    ListMot[e]=check_mot(x+i,y,!est_verticale,plateau);
-                    if (strlen(ListMot[e])>1){
-                        points+=calcul_points1(ListMot[e],plateau,x+i,y,!est_verticale);
+                    use_lettre[i]=true;
+                    if(!verif_chevalet(*joueur,mot[i].lettre)){
+                        ok_chevalet=false;
                     }
+                    else{
+                        ok_chevalet=true;
+                    }
+                    ListMot[e]=check_mot(x+i,y,!est_verticale,plateau);
+                    /*if (strlen(ListMot[e])>1){
+                        points+=calcul_points1(ListMot[e],plateau,x+i,y,!est_verticale);
+                    }*/
+                   placement[e]=malloc(2*sizeof(int));
+                   placement[e][0]=x+i;
+                   placement[e][1]=y;
                     e++;
+                } else {
+                    use_lettre[i]=false;
                 }
                 
             }
@@ -350,19 +387,44 @@ int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
 
     if(points!=-1){
         ListMot[e]=check_mot(x,y,est_verticale,plateau);
-        if(strlen(ListMot[e])>1){
+        /*if(strlen(ListMot[e])>1){
             points+=calcul_points1(ListMot[e],plateau,x,y,est_verticale);
-        }
+        }*/
         e++;
     }
     printf("liste des mots formées\n");
+    bool valide_dic=true;
     for(int i=0;i<e;i++){
         if(strlen(ListMot[i])>1){
             printf("%s \n",ListMot[i]);
+            valide_dic=mot_valide(ListMot[i],taille_dic);
         }
-        free(ListMot[i]);
+    }
+    if(valide_dic && ok_chevalet){
+        for(int i=0;i<e;i++){
+            if(strlen(ListMot[i])>1){
+                points+=calcul_points(ListMot[i],plateau,x,y,est_verticale);
+            }
+            free(ListMot[i]);
 
 
+        }
+        for(int i=0;i<len;i++){
+            if(use_lettre[i]){
+                retire_chevalet(joueur,mot[i].lettre);
+            }
+        }
+    }
+    else{
+        if (!ok_chevalet)
+            printf("vous n'avez pas les bonnes lettres dans votre chevalet \n");
+        else
+            printf("un des mot  n'est pas dans le dictionnaire \n");
+        points=-1;
+        for(int i=0;i<e-1;i++){
+            plateau[placement[i][0]][placement[i][1]].c=vide;
+            free(placement[i]);
+        }
     }
     if(points==-1)
     
@@ -377,7 +439,7 @@ int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale){
 
 
 }
-void ajout_mot(Case **plateau,Joueur *joueur){
+void ajout_mot(Case **plateau,Joueur *joueur, int taille_dic){
     int x,y;
     char o;
     bool orientation =false;
@@ -410,7 +472,7 @@ void ajout_mot(Case **plateau,Joueur *joueur){
     //else if(! isalpha(car))
     //printf("le caractere n est pas une lettre \n");
     //else {
-        points=insert_mot(mot,plateau,x,y,orientation);
+        points=insert_mot(mot,plateau,x,y,orientation, taille_dic, joueur);
     }
 }
         joueur->score_actuel+=points;
@@ -609,6 +671,33 @@ void removeMultiplicateur(Case **plateau){
         }
     }
 }
+char *dic[500000];
+void free_dic(int taille){
+    for (int i=0;i<taille;i++){
+        free(dic[i]);
+    }
+}
+int init_dictionnaire(char *dictionnaire){
+    FILE *file = fopen(dictionnaire, "r");
+    if (file == NULL) {
+        printf("Erreur d'ouverture du fichier dictionnaire.\n");
+    }
+
+    char ligne[TAILLE_PLATEAU + 1];
+    int i=0;
+    while (fgets(ligne, sizeof(ligne), file) != NULL) {
+        ligne[strcspn(ligne, "\n")] = '\0';  // Supprime le saut de ligne
+
+        dic[i]=malloc(strlen(ligne+1)*sizeof(char *));
+        strcpy(dic[i],ligne);
+        i++;
+
+
+    }
+    fclose(file);
+    return i;
+
+}
 char *majuscule_mot(char *mot) {
     char *mot_majuscule = malloc(strlen(mot) + 1);  // +1 pour le caractère nul '\0'
     if (mot_majuscule == NULL) {
@@ -623,24 +712,16 @@ char *majuscule_mot(char *mot) {
 
     return mot_majuscule;
 }
-bool mot_valide(char *word , char *dictionnaire){
-    FILE *file = fopen(dictionnaire, "r");
-    if (file == NULL) {
-        printf("Erreur d'ouverture du fichier dictionnaire.\n");
-        return false;
-    }
+bool mot_valide(char *word , int taille){
 
-    char ligne[TAILLE_PLATEAU + 1];
-    while (fgets(ligne, sizeof(ligne), file) != NULL) {
-        ligne[strcspn(ligne, "\n")] = '\0';  // Supprime le saut de ligne
-        if (strcmp(majuscule_mot(word), ligne) == 0) {
+
+    for(int i =0;i<taille;i++){
+        if (strcmp(majuscule_mot(word), dic[i]) == 0) {
             printf("Le mot %s est valide.\n", word);
-            fclose(file);
             return true;  
         }
     }
-    //printf("Le mot %s n'est pas valide.\n", word);
-    fclose(file);
+    printf("Le mot %s n'est pas valide.\n", word);
     return false;  
 }
 char **tous_les_mots(Chevalet *chevalet){
@@ -650,30 +731,45 @@ char **tous_les_mots(Chevalet *chevalet){
         ListMot[i]=malloc(8*sizeof(char));
     }
     int i=0;
-    for (int a = 0; a < 7; a++) {
-        for (int b = 0; b < 6; b++) {
-            for (int c = 0; c < 5; c++) {
-                for (int d = 0; d < 4; d++) {
-                    for (int e = 0; e < 3; e++) {
-                        for (int f = 0; f < 2; f++) {
-                            for (int g = 0; g < 1; g++) {
-                                char mot[8]; 
-                                mot[0] = chevalet->lettres[a].lettre;
-                                mot[1] = chevalet->lettres[b].lettre;
-                                mot[2] = chevalet->lettres[c].lettre;
-                                mot[3] = chevalet->lettres[d].lettre;
-                                mot[4] = chevalet->lettres[e].lettre;
-                                mot[5] = chevalet->lettres[f].lettre;
-                                mot[6] = chevalet->lettres[g].lettre;
-                                mot[7] = '\0';  
 
-                                strcpy(ListMot[i], mot);
-                                i++;
+    for (int a = 0; a < 7; a++) {
+        for (int b = 0; b < 7; b++) {
+            if (b != a) {
+                for (int c = 0; c < 7; c++) {
+                    if (c != a && c != b) {
+                        for (int d = 0; d < 7; d++) {
+                            if (d != a && d != b && d != c) {
+                                for (int e = 0; e < 7; e++) {
+                                    if (e != a && e != b && e != c && e != d) {
+                                        for (int f = 0; f < 7; f++) {
+                                            if (f != a && f != b && f != c && f != d && f != e) {
+                                                for (int g = 0; g < 7; g++) {
+                                                    if (g != a && g != b && g != c && g != d && g != e && g != f) {
+                                                        char mot[8]; 
+                                                        mot[0] = chevalet->lettres[a].lettre;
+                                                        mot[1] = chevalet->lettres[b].lettre;
+                                                        mot[2] = chevalet->lettres[c].lettre;
+                                                        mot[3] = chevalet->lettres[d].lettre;
+                                                        mot[4] = chevalet->lettres[e].lettre;
+                                                        mot[5] = chevalet->lettres[f].lettre;
+                                                        mot[6] = chevalet->lettres[g].lettre;
+                                                        mot[7] = '\0';  
+                                                        strcpy(ListMot[i], mot);
+                                                        
+                                                        i++;
+                                                        
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+
         }
     }
     printf("les mots possibles sont : \n");
@@ -683,14 +779,107 @@ char **tous_les_mots(Chevalet *chevalet){
     return ListMot;
 
 }
+caractere *sac;
+int nb_pioche=0;
+void init_sac(){
+    int nb=0;
+    for (int i=0;i<26;i++){
+        nb+=lettres[i].nb;
+    }
+    sac=malloc(nb*sizeof(caractere));
+    int k=0;
+    for (int i=0;i<26;i++){
+        for (int j=0;j<lettres[i].nb;j++){
+            sac[k]=lettres[i];
+            k++;
+        }
+    }
+    nb_pioche+=nb;
+}
 
+caractere pioche(){
+    if(nb_pioche <= 0) {
+        printf("Le sac est vide, impossible de piocher.\n");
+        return vide;
+    }
+    int c =rand()%nb_pioche;
+    caractere car = sac[c];
+    caractere temp = sac[nb_pioche-1];
+    sac[c] = temp;
+    sac[nb_pioche-1] = car;
+    nb_pioche--;
+    return car;
+}
 
+void init_chevalet(Joueur *joueur){
+    joueur->chevalet_joueur.nblettres=7;
+    for (int i=0;i<7;i++){
+        joueur->chevalet_joueur.lettres[i]=pioche();
 
+    }
+}
 
+void affiche_chevalet(Joueur joueur){
+    printf("Votre chevalet contient : \n");
+    for (int i=0;i<7;i++){
+        printf("%c ",joueur.chevalet_joueur.lettres[i].lettre);
+    }
+    printf("\n");
+}
+
+bool verif_chevalet(Joueur joueur,char lettre){
+    for (int i=0;i<7;i++){
+        if(joueur.chevalet_joueur.lettres[i].lettre==lettre){
+            return true;
+        }
+    }
+    return false;
+}
+
+void retire_chevalet(Joueur *joueur,char lettre){
+    for (int i=0;i<7;i++){
+        if(joueur->chevalet_joueur.lettres[i].lettre==lettre){
+            joueur->chevalet_joueur.lettres[i]=vide;
+            break;
+        }
+    }
+}
+
+void remplir_chevalet(Joueur *joueur){
+    for (int i=0;i<7;i++){
+        if(joueur->chevalet_joueur.lettres[i].lettre==' '){
+            joueur->chevalet_joueur.lettres[i]=pioche();
+            if (nb_pioche<=0){
+                printf("le sac est vide \n");
+                break;
+            }
+        }
+    }
+}
+
+bool vide_chevalet(Joueur joueur){
+    for (int i=0;i<7;i++){
+        if(joueur.chevalet_joueur.lettres[i].lettre!=' '){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool plein_chevalet(Joueur joueur){
+    for (int i=0;i<7;i++){
+        if(joueur.chevalet_joueur.lettres[i].lettre==' '){
+            return false;
+        }
+    }
+    return true;
+}
 
 
 int main() {
-    /*bool b=true;
+    srand(time(NULL));  // Initialisation de la graine pour la génération aléatoire
+    int taille_dic=init_dictionnaire("dictionnaire.txt");
+    bool b=true;
     int n;
     Case **plateau = init_plateau(TAILLE_PLATEAU); 
     init_case_triple_plateau(plateau,cordonnees_case_mots_triple);
@@ -699,40 +888,80 @@ int main() {
     init_case_lettre_triple_plateau(plateau,cordonnees_cases_lettres_triples);
     affiche_tab(plateau);
 
+    init_sac();
     Joueur joueur1;
     joueur1.score_actuel=0;
-    //joueur1.chevalet_joueur.nblettres=0;
-    //joueur1.chevalet_joueur.lettres[7];
+    init_chevalet(&joueur1);
     Joueur joueur2;
     joueur2.score_actuel=0;
+    init_chevalet(&joueur2);
     int tour=0;
+    bool fin=false;
     //affiche_tab1(plateau);
     while(b){
         if(tour%2==0){
+            remplir_chevalet(&joueur1);
+            if (vide_chevalet(joueur1)){
+                printf("Fin de la partie\n");
+                fin = true;
+            } else {
             printf("joueur 1 \n");
-            ajout_mot(plateau,&joueur1);
+            affiche_chevalet(joueur1);
+            bool scrabble_possible = plein_chevalet(joueur1);
+            ajout_mot(plateau,&joueur1,taille_dic);
+            if(vide_chevalet(joueur1) && scrabble_possible){
+                joueur1.score_actuel+=50;
+                printf("50 points bonus !\n");
+            }
             affiche_tab(plateau);
 
-
+            }
         }
         else{
+            remplir_chevalet(&joueur2);
+            if (vide_chevalet(joueur2)){
+                printf("Fin de la partie\n");
+                fin = true;
+            } else {
             printf("joueur 2 \n");
-            ajout_mot(plateau,&joueur2);
+            affiche_chevalet(joueur2);
+            bool scrabble_possible = plein_chevalet(joueur2);
+            ajout_mot(plateau,&joueur2,taille_dic);
+            if(vide_chevalet(joueur2) && scrabble_possible){
+                joueur2.score_actuel+=50;
+                printf("50 points bonus !\n");
+            }
 
             affiche_tab(plateau);
 
-
+            }
         }
         tour++;
 
 
     //ajout_mot(plateau);
     //affiche_tab(plateau);
-    printf("1 pour continuer 0 pour quitter \n");
-    scanf("%d",&n);
-    if(n==0)
-    b=false;
+    if (!fin){
+        printf("1 pour continuer 0 pour quitter \n");
+        scanf("%d",&n);
+        if(n==0)
+        b=false;
+    } else {
+        b=false;
+        printf("Score final du joueur 1 : %d\n",joueur1.score_actuel);
+        printf("Score final du joueur 2 : %d\n",joueur2.score_actuel);
+        if(joueur1.score_actuel > joueur2.score_actuel){
+            printf("Le joueur 1 a gagné\n");
+        } else if (joueur2.score_actuel > joueur1.score_actuel) {
+            printf("Le joueur 2 a gagné\n");
 
+
+        } else {
+            printf("Egalité entre joueur 1 et joueur 2\n");
+
+
+        }
+    }
     }
 
 
@@ -741,8 +970,8 @@ int main() {
     for (int i = 0; i < TAILLE_PLATEAU; i++) {
         free(plateau[i]);
     }
-    free(plateau);*/
-    Chevalet chevalet;
+    free(plateau);
+    /*Chevalet chevalet;
     chevalet.nblettres=7;   
     chevalet.lettres[0].lettre='A';
     chevalet.lettres[1].lettre='B';
@@ -753,7 +982,7 @@ int main() {
     chevalet.lettres[6].lettre='E';
     char **L=tous_les_mots(&chevalet);
     for (int i=0;i<5040;i++){
-        bool b=mot_valide(L[i], "dictionnaire.txt");
+        bool b=mot_valide(L[i],taille_dic);
         if(b){
             printf("le mot %s est valide \n",L[i]);
         }
@@ -762,7 +991,8 @@ int main() {
     for (int i=0;i<5040;i++){
         free(L[i]);
     }
-    free(L);
+    free(L);*/
+    free_dic(taille_dic);
 
 
     return 0;

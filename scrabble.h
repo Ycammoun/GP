@@ -40,8 +40,13 @@ void insert_caractere(caractere car,Case **tab,int x,int y);
 void ajout_caractere(Case **tab);
 bool est_vide_case(Case **plateau ,int x , int y);
 bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale);
-int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale);
-void ajout_mot(Case **plateau,Joueur *joueur);
+int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale, int taille_dic, Joueur *joueur);
+void init_sac();
+void init_chevalet(Joueur *joueur);
+void affiche_chevalet(Joueur joueur);
+bool verif_chevalet(Joueur joueur,char lettre);
+void free_dic(int taille);
+void ajout_mot(Case **plateau,Joueur *joueur,int taille_dic);
 bool mot_alpha(char *mot);
 int calcul_points(char *word,Case **plateau,int x,int y, bool est_verticale);
 void init_case_triple_plateau(Case **plateau,couple cordonnees[]);
@@ -50,13 +55,18 @@ void init_case_lettre_double_plateau(Case **plateau,couple cordonnees[]);
 void init_case_lettre_triple_plateau(Case **plateau,couple cordonnees[]);
 void affiche_tab1(Case **tab);
 void free_plateau(Case **plateau);
+void retire_chevalet(Joueur *joueur, char lettre);
+void remplir_chevalet(Joueur *joueur);
+bool vide_chevalet(Joueur joueur);
 
 int calcul_points1(char *word, Case **plateau, int x, int y, bool est_verticale);
 void removeMultiplicateur(Case **plateau);
 int get_score(char lettre);
 char *majuscule_mot(char *mot);
-bool mot_valide(char *word , char *dictionnaire);
+bool mot_valide(char *word , int taille);
 char **tous_les_mots(Chevalet *chevalet);
+void free_dic(int taille);
+int init_dictionnaire(char *dictionnaire);
 
 
 

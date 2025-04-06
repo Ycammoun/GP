@@ -39,8 +39,8 @@ void affiche_tab(Case **tab);
 void insert_caractere(caractere car,Case **tab,int x,int y);
 void ajout_caractere(Case **tab);
 bool est_vide_case(Case **plateau ,int x , int y);
-bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale);
-int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale, int taille_dic, Joueur *joueur);
+bool inserable(char *word, Case **plateau, int x, int y, bool est_verticale,bool test);
+int insert_mot(char *word,Case **plateau,int x,int y, bool est_verticale, int taille_dic, Joueur *joueur, bool test);
 void init_sac();
 void init_chevalet(Joueur *joueur);
 void affiche_chevalet(Joueur joueur);
@@ -58,6 +58,7 @@ void free_plateau(Case **plateau);
 void retire_chevalet(Joueur *joueur, char lettre);
 void remplir_chevalet(Joueur *joueur);
 bool vide_chevalet(Joueur joueur);
+bool verif_chevalet_liste(Joueur joueur,char *liste, int taille);
 
 int calcul_points1(char *word, Case **plateau, int x, int y, bool est_verticale);
 void removeMultiplicateur(Case **plateau);

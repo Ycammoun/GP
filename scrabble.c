@@ -49,6 +49,8 @@ couple coordonnees_cases_lettre_triple[12] = {
 
 const int TAILLE_PLATEAU = 15;
 char* dic[500000];
+caractere* sac;
+int nb_pioche = 0;
 
 Case **init_plateau() {
     Case **resultat = malloc(TAILLE_PLATEAU * sizeof(Case *));
@@ -659,6 +661,23 @@ bool mot_valide(char *word , int taille) {
     return false;
 }
 
+void init_sac() {
+    int nb = 0;
+
+    for (int i = 0; i < 26; i++) {
+        nb += lettres[i].nb;
+    }
+
+    sac = malloc(nb * sizeof(caractere));
+    int k = 0;
+    for (int i = 0; i < 26; i++) {
+        for (int j = 0; j < lettres[i].nb; j++) {
+            sac[k] = lettres[i];
+            k++;
+        }
+    }
+}
+
 caractere pioche() {
     if (nb_pioche <= 0) {
         printf("Le sac est vide, impossible de piocher.\n");
@@ -759,7 +778,7 @@ int main() {
     bool b = true;
     int n;
 
-    Case **plateau = init_plateau(TAILLE_PLATEAU); 
+    Case **plateau = init_plateau(); 
     init_case_mot_triple_plateau(plateau, coordonnees_cases_mot_triple);
     init_case_mot_double_plateau(plateau, coordonnees_cases_mot_double);
     init_case_lettre_double_plateau(plateau, coordonnees_cases_lettre_double);

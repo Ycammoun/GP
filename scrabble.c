@@ -253,7 +253,7 @@ int insert_mot(char *word, Case **plateau, int x, int y, bool est_verticale, int
     char **ListMot = malloc(16 * sizeof(char *));
     int e = 0;
     int points = 0;
-    bool ok_chevalet;
+    bool ok_chevalet = true;
     int nb_lettres_utilisees = 0;
     
     int len = strlen(word);
@@ -276,7 +276,7 @@ int insert_mot(char *word, Case **plateau, int x, int y, bool est_verticale, int
                     if(!verif_chevalet(*joueur, mot[i].lettre)) {
                         ok_chevalet = false;
                     } else {
-                        ok_chevalet = true;
+                        ok_chevalet = (true && ok_chevalet);
                     }
 
                     ListMot[e] = check_mot(x, y + i, !est_verticale, plateau);
@@ -297,7 +297,7 @@ int insert_mot(char *word, Case **plateau, int x, int y, bool est_verticale, int
                     if(!verif_chevalet(*joueur, mot[i].lettre)) {
                         ok_chevalet = false;
                     } else {
-                        ok_chevalet = true;
+                        ok_chevalet = (true && ok_chevalet);
                     }
 
                     ListMot[e] = check_mot(x + i, y, !est_verticale, plateau);
@@ -312,6 +312,16 @@ int insert_mot(char *word, Case **plateau, int x, int y, bool est_verticale, int
         }
     }
 
+    for(int i = 0; i < len; i++) {
+        bool lettres_utilisees = false;
+        if (use_lettre[i]) {
+            lettres_utilisees = true;
+        }
+        if (!lettres_utilisees) {
+            points = -1;
+        }
+    }
+
     if (points != -1) {
         ListMot[e] = check_mot(x, y, est_verticale, plateau);
         e++;
@@ -322,14 +332,14 @@ int insert_mot(char *word, Case **plateau, int x, int y, bool est_verticale, int
         if (strlen(ListMot[i]) > 1) {
             if(!test)
                 printf("Mot formé : %s\n", ListMot[i]);
-            valide_dic = mot_valide(ListMot[i], taille_dic);
+            valide_dic = (mot_valide(ListMot[i], taille_dic, test) && valide_dic);
         }
     }
 
     if(valide_dic && ok_chevalet) {
         for (int i = 0; i < e; i++) {
             if(strlen(ListMot[i]) > 1) {
-                points += calcul_points(ListMot[i], plateau, x, y, est_verticale);
+                points += calcul_points(ListMot[i], plateau, x, y, est_verticale, test);
             }
             free(ListMot[i]);
         }
@@ -427,7 +437,7 @@ int get_score(char lettre) {
     return 0; 
 }
 
-int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) {
+int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale, bool test) {
     int total = 0;
     int multiplicateur = 1;
     int len = strlen(word);
@@ -495,7 +505,8 @@ int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale) 
     }
 
     total *= multiplicateur;
-    printf("Le mot %s a rapporté %d points\n", word, total);
+    if (!test)
+        printf("Le mot %s a rapporté %d points\n", word, total);
     free(mot);
     return total;
 }
@@ -571,10 +582,12 @@ void meilleur_mot(Joueur joueur, int taille_dic, Case **plateau) {
     int points = 0;
     char mot[TAILLE_PLATEAU + 1];
     int jx, jy;
-    bool orientation;
+    bool orientation = false;  // Initialisation de l'orientation à false (horizontale)
+
     for (int x = 0; x < TAILLE_PLATEAU; x++) {
-        for (int y = 0;y < TAILLE_PLATEAU; y++) {
+        for (int y = 0; y < TAILLE_PLATEAU; y++) {
             for (int i = 0; i < taille_dic; i++) {
+                // Vérification pour l'orientation verticale (true)
                 if (peut_placer(dic[i], x, y, true, joueur, plateau)) {
                     Case copie_plateau[TAILLE_PLATEAU][TAILLE_PLATEAU];
                     for (int i = 0; i < TAILLE_PLATEAU; i++) {
@@ -583,7 +596,7 @@ void meilleur_mot(Joueur joueur, int taille_dic, Case **plateau) {
                         }
                     }
 
-                    int pts=insert_mot(dic[i], plateau, x, y, true, taille_dic, &joueur, true);
+                    int pts = insert_mot(dic[i], plateau, x, y, true, taille_dic, &joueur, true);
                     for (int i = 0; i < TAILLE_PLATEAU; i++) {
                         for (int j = 0; j < TAILLE_PLATEAU; j++) {
                             plateau[i][j] = copie_plateau[i][j];
@@ -595,10 +608,11 @@ void meilleur_mot(Joueur joueur, int taille_dic, Case **plateau) {
                         strcpy(mot, dic[i]);
                         jx = x;
                         jy = y;
-                        orientation = true;
+                        orientation = true;  // Mettre à jour l'orientation à true (verticale)
                     }
                 }
 
+                // Vérification pour l'orientation horizontale (false)
                 if (peut_placer(dic[i], x, y, false, joueur, plateau)) {
                     Case copie_plateau[TAILLE_PLATEAU][TAILLE_PLATEAU];
                     for (int i = 0; i < TAILLE_PLATEAU; i++) {
@@ -619,7 +633,7 @@ void meilleur_mot(Joueur joueur, int taille_dic, Case **plateau) {
                         strcpy(mot, dic[i]);
                         jx = x;
                         jy = y;
-                        orientation = true;
+                        orientation = false;  // Mettre à jour l'orientation à false (horizontale)
                     }
                 }
             }
@@ -629,11 +643,12 @@ void meilleur_mot(Joueur joueur, int taille_dic, Case **plateau) {
     if (points == 0) {
         printf("Aucun mot valide trouvé\n");
     } else if (orientation) {
-        printf("Le meilleur mot est %s aux coordonnées %d %d, orienté verticalement, et il rapporte %d points\n", mot, jy, jx, points);
+        printf("Le meilleur mot est %s aux coordonnées %d %d, orienté verticalement, et il rapporte %d points\n", mot, jx, jy, points);
     } else {
-        printf("Le meilleur mot est %s aux coordonnées %d %d, orienté horizontalement, et il rapporte %d points\n", mot, jy, jx, points);
+        printf("Le meilleur mot est %s aux coordonnées %d %d, orienté horizontalement, et il rapporte %d points\n", mot, jx, jy, points);
     }
 }
+
 
 char *majuscule_mot(char *mot) {
     char *mot_majuscule = malloc(strlen(mot) + 1);  // +1 pour le caractère nul '\0'
@@ -650,18 +665,20 @@ char *majuscule_mot(char *mot) {
     return mot_majuscule;
 }
 
-bool mot_valide(char *word , int taille) {
+bool mot_valide(char *word , int taille, bool test) {
     for (int i = 0; i < taille; i++) {
         if (strcmp(majuscule_mot(word), dic[i]) == 0) {
-            printf("Le mot %s est valide\n", word);
+            if (!test)
+                printf("Le mot %s est valide\n", word);
             return true;
         }
     }
-    printf("Le mot %s n'est pas valide\n", word);
+    if (!test)
+        printf("Le mot %s n'est pas valide\n", word);
     return false;
 }
 
-void init_sac() {
+/*void init_sac() {
     int nb = 0;
 
     for (int i = 0; i < 26; i++) {
@@ -676,7 +693,25 @@ void init_sac() {
             k++;
         }
     }
+}*/
+void init_sac() {
+    int nb = 0;
+    for (int i = 0; i < 26; i++) {
+        nb += lettres[i].nb;
+    }
+
+    sac = malloc(nb * sizeof(caractere));  // Allocation de mémoire pour le sac
+    nb_pioche = nb;  // Initialisation de nb_pioche
+
+    int k = 0;
+    for (int i = 0; i < 26; i++) {
+        for (int j = 0; j < lettres[i].nb; j++) {
+            sac[k] = lettres[i];
+            k++;
+        }
+    }
 }
+
 
 caractere pioche() {
     if (nb_pioche <= 0) {
@@ -739,15 +774,12 @@ bool verif_chevalet_liste(Joueur joueur, char *liste, int taille) {
 }
 
 void retire_chevalet(Joueur *joueur, char lettre) {
-    affiche_chevalet(*joueur);
     for (int i = 0; i < 7; i++) {
         if (joueur->chevalet_joueur.lettres[i].lettre == lettre) {
             joueur->chevalet_joueur.lettres[i] = vide;
             break;
         }
     }
-
-    affiche_chevalet(*joueur);
 }
 
 void remplir_chevalet(Joueur *joueur) {
@@ -772,6 +804,7 @@ bool vide_chevalet(Joueur joueur) {
 }
 
 int main() {
+
     srand(time(NULL));  // Initialisation de la graine pour la génération aléatoire
 
     int taille_dic = init_dictionnaire("dictionnaire.txt");

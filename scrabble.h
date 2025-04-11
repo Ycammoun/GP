@@ -49,7 +49,7 @@ void ajout_mot(Case **plateau, Joueur *joueur, int taille_dic);
 
 bool mot_alpha(char *mot);
 int get_score(char lettre);
-int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale);
+int calcul_points(char *word, Case **plateau, int x, int y, bool est_verticale, bool test);
 void retire_multiplicateur(Case **plateau);
 
 void free_dic(int taille);
@@ -57,7 +57,7 @@ int init_dictionnaire(char *dictionnaire);
 bool peut_placer(char* mot, int x, int y, bool est_verticale, Joueur joueur, Case** plateau);
 void meilleur_mot(Joueur joueur, int taille_dic, Case **plateau);
 char* majuscule_mot(char *mot);
-bool mot_valide(char *word, int taille);
+bool mot_valide(char *word, int taille, bool test);
 
 caractere pioche();
 void init_chevalet(Joueur *joueur);
